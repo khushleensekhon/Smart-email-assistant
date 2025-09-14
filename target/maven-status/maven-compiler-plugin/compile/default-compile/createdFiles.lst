@@ -25,4 +25,5 @@ com\smartemail\service\CategoryService.class
 com\smartemail\exception\DuplicateResourceException.class
 com\smartemail\model\Email.class
 com\smartemail\repository\FollowUpRepository.class
+com\smartemail\service\EmailReplyService.class
 com\smartemail\model\Template.class

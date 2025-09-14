@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Email Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1><i class="fas fa-envelope"></i> Smart Email Assistant</h1>
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="users">Users</button>
+                <button class="nav-tab" data-tab="emails">Emails</button>
+                <button class="nav-tab" data-tab="categories">Categories</button>
+                <button class="nav-tab" data-tab="templates">Templates</button>
+                <button class="nav-tab" data-tab="followups">Follow-ups</button>
+            </nav>
+        </header>
+
+        <!-- User Selection Screen -->
+        <div id="userSelection" class="user-selection" style="display: none;">
+            <div class="welcome-container">
+                <h2>Welcome to Smart Email Assistant</h2>
+                <p>Please select a user to continue or create a new one:</p>
+                <div class="user-select-container">
+                    <select id="userSelect" class="user-select">
+                        <option value="">Choose a user to get started...</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="selectUser()">
+                        <i class="fas fa-sign-in-alt"></i> Select User
+                    </button>
+                    <button class="btn btn-success" onclick="showUserForm()">
+                        <i class="fas fa-plus"></i> Create New User
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Dashboard -->
+        <div id="userDashboard" class="user-dashboard" style="display: none;">
+            <div class="user-header">
+                <h2 id="selectedUserName">Welcome, User!</h2>
+                <button class="btn btn-secondary" onclick="changeUser()">
+                    <i class="fas fa-exchange-alt"></i> Change User
+                </button>
+            </div>
+        </div>
+
+        <!-- Welcome Screen -->
+        <div id="welcomeScreen" class="welcome-screen" style="display: flex;">
+            <div class="welcome-content">
+                <h1><i class="fas fa-envelope"></i> Smart Email Assistant</h1>
+                <p>Your intelligent email management solution</p>
+                
+                <!-- User Selection Section -->
+                <div class="welcome-user-section">
+                    <h3>Select an existing user or create a new one:</h3>
+                    <div class="welcome-user-actions">
+                        <select id="welcomeUserSelect" class="welcome-user-select">
+                            <option value="">Choose a user to get started...</option>
+                        </select>
+                        <button class="btn btn-primary btn-large" onclick="selectWelcomeUser()">
+                            <i class="fas fa-sign-in-alt"></i> Select User
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Create User Section -->
+                <div class="welcome-create-section">
+                    <h3>Or create a new user:</h3>
+                    <div class="welcome-actions">
+                        <button class="btn btn-success btn-large" onclick="showUserForm()">
+                            <i class="fas fa-user-plus"></i> Create New User
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content" id="userContent" style="display: none;">
+            <!-- Users Tab -->
+            <div id="users" class="tab-content active">
+                <div class="section-header">
+                    <h2>User Management</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-info" onclick="testApiConnection()">
+                            <i class="fas fa-wifi"></i> Test API
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshUsers()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-primary" onclick="showUserForm()">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Emails Tab -->
+            <div id="emails" class="tab-content">
+                <div class="section-header">
+                    <h2>Email Management</h2>
+                    <button class="btn btn-primary" onclick="showEmailForm()">
+                        <i class="fas fa-plus"></i> Add Email
+                    </button>
+                </div>
+                
+                <!-- Search and Filter -->
+                <div class="search-container">
+                    <div class="search-filters">
+                        <input type="text" id="emailSearch" placeholder="Search emails..." class="search-input">
+                        <select id="categoryFilter" class="filter-select">
+                            <option value="">All Categories</option>
+                        </select>
+                        <select id="sentimentFilter" class="filter-select">
+                            <option value="">All Sentiments</option>
+                            <option value="POSITIVE">Positive</option>
+                            <option value="NEGATIVE">Negative</option>
+                            <option value="NEUTRAL">Neutral</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="searchEmails()">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                        <button class="btn btn-warning" onclick="searchEmailsBySubject()">
+                            <i class="fas fa-search"></i> Search by Subject
+                        </button>
+                        <button class="btn btn-primary" onclick="searchEmailsByKeywords()">
+                            <i class="fas fa-key"></i> Search by Keywords
+                        </button>
+                        <button class="btn btn-success" onclick="exportEmails()">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                        <button class="btn btn-info" onclick="showStandaloneReplyForm()">
+                            <i class="fas fa-magic"></i> Generate Reply
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Sender</th>
+                                <th>Recipient</th>
+                                <th>Subject</th>
+                                <th>Category</th>
+                                <th>Sentiment</th>
+                                <th>Received</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="emailsTableBody">
+                            <!-- Emails will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Categories Tab -->
+            <div id="categories" class="tab-content">
+                <div class="section-header">
+                    <h2>Category Management</h2>
+                    <button class="btn btn-primary" onclick="showCategoryForm()">
+                        <i class="fas fa-plus"></i> Add Category
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="categoriesTableBody">
+                            <!-- Categories will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Templates Tab -->
+            <div id="templates" class="tab-content">
+                <div class="section-header">
+                    <h2>Template Management</h2>
+                    <button class="btn btn-primary" onclick="showTemplateForm()">
+                        <i class="fas fa-plus"></i> Add Template
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Body Preview</th>
+                                <th>User</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="templatesTableBody">
+                            <!-- Templates will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Follow-ups Tab -->
+            <div id="followups" class="tab-content">
+                <div class="section-header">
+                    <h2>Follow-up Management</h2>
+                    <button class="btn btn-primary" onclick="showFollowUpForm()">
+                        <i class="fas fa-plus"></i> Add Follow-up
+                    </button>
+                    <button class="btn btn-warning" onclick="loadOverdueFollowUps()">
+                        <i class="fas fa-exclamation-triangle"></i> Overdue
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Email Subject</th>
+                                <th>Due Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="followupsTableBody">
+                            <!-- Follow-ups will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalBody">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

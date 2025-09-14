@@ -1,3 +1,4 @@
+
 package com.smartemail.controller;
 
 import java.io.IOException;
@@ -23,8 +24,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.smartemail.model.Email;
 import com.smartemail.service.EmailService;
+import com.smartemail.service.EmailReplyService;
 
 import jakarta.validation.Valid;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/emails")
@@ -33,6 +36,9 @@ public class EmailController {
     
     @Autowired
     private EmailService emailService;
+    
+    @Autowired
+    private EmailReplyService emailReplyService;
     
     @GetMapping
     public ResponseEntity<List<Email>> getAllEmails() {
@@ -132,5 +138,25 @@ public ResponseEntity<List<Email>> getEmailsBySender(@RequestParam String sender
         return ResponseEntity.ok()
                 .headers(headers)
                 .body(exportData);
+    }
+    
+    @PostMapping("/{id}/generate-reply")
+    public ResponseEntity<Map<String, String>> generateReply(@PathVariable Long id) {
+        Email email = emailService.getEmailById(id);
+        Map<String, String> reply = emailReplyService.generateReply(
+            email.getSubject(), 
+            email.getBody(), 
+            email.getSender()
+        );
+        return ResponseEntity.ok(reply);
+    }
+    
+    @PostMapping("/generate-reply")
+    public ResponseEntity<Map<String, String>> generateReplyFromContent(
+            @RequestParam String subject,
+            @RequestParam String body,
+            @RequestParam String senderEmail) {
+        Map<String, String> reply = emailReplyService.generateReply(subject, body, senderEmail);
+        return ResponseEntity.ok(reply);
     }
 }
