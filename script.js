@@ -97,14 +97,14 @@ function changeUser() {
     document.getElementById('userSelect').value = '';
 }
 
-function loadUserData() {
+async function loadUserData() {
     if (!currentUserId) return;
     
-    // Load all data for the selected user
-    loadEmails();
-    loadCategories();
-    loadTemplates();
-    loadFollowUps();
+    // Load all data for the selected user in sequence to ensure dependencies
+    await loadEmails();
+    await loadCategories();
+    await loadTemplates();
+    await loadFollowUps();
 }
 
 function setupEventListeners() {
@@ -126,7 +126,7 @@ function setupEventListeners() {
 }
 
 // Tab Management
-function switchTab(tabName) {
+async function switchTab(tabName) {
     if (!currentUserId) {
         showToast('Please select a user first', 'error');
         return;
@@ -149,7 +149,7 @@ function switchTab(tabName) {
     // Load data for the active tab
     switch(tabName) {
         case 'emails':
-            loadEmails();
+            await loadEmails();
             break;
         case 'categories':
             loadCategories();
@@ -158,7 +158,9 @@ function switchTab(tabName) {
             loadTemplates();
             break;
         case 'followups':
-            loadFollowUps();
+            // Ensure emails are loaded before follow-ups so we can map subjects reliably
+            await loadEmails();
+            await loadFollowUps();
             break;
     }
 }
@@ -545,6 +547,9 @@ function renderEmailsTable() {
 
 function showEmailForm(email = null) {
     const isEdit = email !== null;
+    // Only allow "Work" and "Personal" in the category dropdown for the Add/Edit Email form
+    const allowedCategoryNames = new Set(['Work', 'Personal']);
+    const emailFormCategories = categories.filter(cat => allowedCategoryNames.has(cat.name));
     const formContent = `
         <h3>${isEdit ? 'Edit Email' : 'Add New Email'}</h3>
         <form id="emailForm">
@@ -575,7 +580,7 @@ function showEmailForm(email = null) {
                 <label for="emailCategory">Category:</label>
                 <select id="emailCategory" name="categoryId">
                     <option value="">Select Category</option>
-                    ${categories.map(cat => `<option value="${cat.id}" ${email && email.categoryId === cat.id ? 'selected' : ''}>${cat.name}</option>`).join('')}
+                    ${emailFormCategories.map(cat => `<option value="${cat.id}" ${email && email.categoryId === cat.id ? 'selected' : ''}>${cat.name}</option>`).join('')}
                 </select>
             </div>
             <div class="form-group">
@@ -1134,11 +1139,15 @@ async function loadFollowUps() {
     if (!currentUserId) return;
     
     try {
-        // Get all follow-ups and filter by user's emails
+        // Ensure emails are loaded to map follow-ups to user's emails
+        if (!emails || emails.length === 0) {
+            await loadEmails();
+        }
+
+        // Get all follow-ups and filter by user's emails using emailId linkage
         const allFollowUps = await apiCall('/followups');
-        followUps = allFollowUps.filter(followUp => 
-            followUp.email && followUp.email.userId === currentUserId
-        );
+        const userEmailIds = new Set(emails.map(e => e.id));
+        followUps = allFollowUps.filter(followUp => userEmailIds.has(followUp.emailId));
         renderFollowUpsTable();
     } catch (error) {
         console.error('Error loading follow-ups:', error);
@@ -1147,10 +1156,12 @@ async function loadFollowUps() {
 
 function renderFollowUpsTable() {
     const tbody = document.getElementById('followupsTableBody');
+    // Build a lookup map for email subjects
+    const emailById = new Map(emails.map(e => [e.id, e]));
     tbody.innerHTML = followUps.map(followUp => `
         <tr>
             <td>${followUp.id}</td>
-            <td>${followUp.email ? followUp.email.subject : 'N/A'}</td>
+            <td>${(emailById.get(followUp.emailId) && emailById.get(followUp.emailId).subject) ? emailById.get(followUp.emailId).subject : 'N/A'}</td>
             <td>${new Date(followUp.dueDate).toLocaleDateString()}</td>
             <td><span class="status-badge status-${followUp.status.toLowerCase()}">${followUp.status}</span></td>
             <td>
